@@ -26,7 +26,6 @@ namespace Markdown.Tokenizer
             }
         }
 
-
         public bool HasMoreTokens()
         {
             return currentPosition < text.Length;
@@ -38,75 +37,63 @@ namespace Markdown.Tokenizer
             {
                 throw new InvalidOperationException("impossible to get the next token. all tokens listed");
             }
-            var startPosition = currentPosition;
-            var shell = ReadNextShell();
-            if (shell == null)
+            var token = ReadFormattingToken();
+            if (token != null)
             {
-                return new Token(ReadRawText(), new List<Attribute>());
+                return token;
             }
-            var shellSuffix = GetShellEnd(shell);
-            if (shellSuffix != null)
-            {
-                var tokenText = text.Substring(currentPosition, shellSuffix.Start - currentPosition);
-                currentPosition = shellSuffix.End + 1;
-                return new Token(tokenText, shellSuffix.Attributes, shell);
-            }
-            currentPosition = startPosition;
-            return new Token(ReadRawText(), new List<Attribute>());
+            var rawText = ReadRawText(shells.Select(s => s.GetStopSymbol()).ToArray());
+            return new Token(rawText, new List<Attribute>(), ConvertRawTextToHtml);
+
         }
 
-        private IShell ReadNextShell()
+        private Func<string, IEnumerable<Attribute>, string> ConvertRawTextToHtml => (rawText, attributes) => rawText;
+
+        public Token ReadFormattingToken()
         {
             var maxPrefix = 0;
-            IShell resultShell = null;
-            var startPosition = currentPosition;
+            MatchObject resultMatchObject = null;
             foreach (var shell in shells)
             {
                 MatchObject matchObject;
-                if (shell.TryOpen(text, startPosition, out matchObject))
+                shell.TryMatch(text, currentPosition, out matchObject);
+                if (maxPrefix < matchObject?.PrefixLength)
                 {
-                    if (matchObject.Length > maxPrefix)
-                    {
-                        resultShell = shell;
-                        currentPosition = matchObject.End + 1;
-                    }
+                    maxPrefix = matchObject.PrefixLength;
+                    resultMatchObject = matchObject;
                 }
             }
-            return resultShell;
+            if (resultMatchObject == null)
+            {
+                return null;
+            }
+            var content = text.Substring(resultMatchObject.StartPrefix + resultMatchObject.PrefixLength,
+                resultMatchObject.StartSuffix - (resultMatchObject.StartPrefix + resultMatchObject.PrefixLength));
+            var attributes = new List<Attribute>();
+            if (resultMatchObject.Attribute != null)
+            {
+                attributes.Add(resultMatchObject.Attribute);
+            }
+            var resultToken = new Token(content, attributes, resultMatchObject.ConvertToHtml, resultMatchObject.Shell);
+            currentPosition = resultMatchObject.StartSuffix + resultMatchObject.SuffixLength;
+            return resultToken;
         }
 
-        private string ReadRawText()
+        private string ReadRawText(char[] stopSypbols)
         {
             var readPosition = currentPosition;
             var tokenText = new StringBuilder();
             for (; readPosition < text.Length; readPosition++)
             {
                 tokenText.Append(text[readPosition]);
-                MatchObject tempMatchObject;
-                if (readPosition != text.Length - 1 &&
-                    shells.Any(s => s.TryOpen(text, readPosition + 1, out tempMatchObject)))
+                if (readPosition != text.Length - 1 && stopSypbols.Contains(text[readPosition + 1]))
                 {
                     readPosition++;
                     break;
                 }
             }
             currentPosition = readPosition;
-
             return tokenText.ToString();
-        }
-
-        private MatchObject GetShellEnd(IShell currentShell)
-        {
-            var readPosition = currentPosition;
-            for (; readPosition < text.Length; readPosition++)
-            {
-                MatchObject matchObject;
-                if (currentShell.TryClose(text, readPosition, out matchObject))
-                {
-                    return matchObject;
-                }
-            }
-            return null;
         }
     }
 }

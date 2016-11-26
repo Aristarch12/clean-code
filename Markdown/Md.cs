@@ -8,8 +8,6 @@ namespace Markdown
 {
     public class Md
     {
-
-        private HtmlRenderer htmlRenderer;
         public string CssAtribute { get; set; }
         public string BaseUrl { get; set; }
 
@@ -17,17 +15,18 @@ namespace Markdown
         {
             new SingleUnderline(),
             new DoubleUnderline(),
-            new UrlShell()
+            new UrlShell(),
+            new Paragraph(),
+            new Header()
         };
 
 
         public string Render(string text)
         {
-            htmlRenderer = new HtmlRenderer(MakeCommonAttributes());
             return GetHtmlCode(text, mdShells);
         }
 
-        private List<Attribute> MakeCommonAttributes()
+        private IEnumerable<Attribute> MakeCommonAttributes()
         {
             var result = new List<Attribute>();
             if (CssAtribute != null)
@@ -47,20 +46,21 @@ namespace Markdown
                 if (token.HasShell())
                 {
                     var shellsInToken = shells.Where(s => token.Shell.Contains(s)).ToList();
-                    token.Text = GetHtmlCode(token.Text, shellsInToken);
+                    var formattingTokenText = GetHtmlCode(token.Text, shellsInToken);
                     if (BaseUrl != null)
                     {
                         AddBaseUrl(BaseUrl, token.Attributes.Where(a => a.Type == AttributeType.Url));
                     }
-                    result.Append(htmlRenderer.Render(token));
+                    token.Attributes.AddRange(MakeCommonAttributes());
+                    result.Append(token.ConvertToHtml(formattingTokenText, token.Attributes));
                 }
                 else
                 {
-                    var resultTextToken = htmlRenderer.Render(token).RemoveEscapeСharacters();
+                    var resultTextToken = token.Text;
                     result.Append(resultTextToken);
                 }
             }
-            return result.ToString();
+            return result.ToString().RemoveEscapeСharacters();
         }
 
         private static bool IsAbsoluteUrl(string url)

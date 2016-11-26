@@ -6,12 +6,52 @@ namespace Markdown.Shell
     class UrlShell : IShell
     {
         private const string Prefix = "[";
-        private readonly List<Type> innerShellsTypes = new List<Type>();
-        
+        private const string Tag = "a";
 
         public bool Contains(IShell shell)
         {
-            return innerShellsTypes.Contains(shell.GetType());
+            return false;
+        }
+
+        public bool TryMatch(string text, int startPosition, out MatchObject matchObject)
+        {
+            matchObject = null;
+            if (TryOpen(text, startPosition))
+            {
+                for (var readPosition = startPosition + Prefix.Length - 1; readPosition < text.Length; readPosition++)
+                {
+                    var endSuffixPosition = GetEndSuffixPosition(text, readPosition);
+                    if (endSuffixPosition != -1)
+                    {
+                        var suffixLength = endSuffixPosition - readPosition + 1;
+                        var attribute = new Attribute(text.Substring(readPosition + 2, suffixLength - 3), AttributeType.Url);
+                        matchObject = new MatchObject(
+                            startPosition,
+                            Prefix.Length,
+                            readPosition,
+                            suffixLength,
+                            GetConversionFunctionToHtml(),
+                            this,
+                            attribute);
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public char GetStopSymbol()
+        {
+            return Prefix[0];
+        }
+
+        private Func<string, IEnumerable<Attribute>, string> GetConversionFunctionToHtml()
+        {
+            return (text, attributes) =>
+            {
+                var attributesText = Attribute.ConvertAttributesToString(attributes);
+                return $"<{Tag}{attributesText}>{text}</{Tag}>";
+            };
         }
 
         private static bool IsIncorrectTagPosition(string text, int startPosition, int endPosition)
@@ -23,34 +63,29 @@ namespace Markdown.Shell
             return text.IsSurroundedByNumbers(startPosition, endPosition + Prefix.Length - 1);
         }
 
-        public bool TryOpen(string text, int startPrefix, out MatchObject matchObject)
+        public bool TryOpen(string text, int startPrefix)
         {
             if (IsIncorrectTagPosition(text, startPrefix, startPrefix + Prefix.Length - 1))
             {
-                matchObject = null;
                 return false;
             }
-            return text.TryMatchSubstring(Prefix, startPrefix, out matchObject);
+            return text.TryMatchSubstring(Prefix, startPrefix);
         }
 
-        public bool TryClose(string text, int startSuffix, out MatchObject matchObject)
+        public int GetEndSuffixPosition(string text, int startSuffix)
         {
-            matchObject = null;
             if (!"](".IsSubstring(text, startSuffix))
             {
-                return false;
+                return -1;
             }
-            for (var i = startSuffix + 3; i < text.Length; i++)
+            for (var readPosition = startSuffix + 3; readPosition < text.Length; readPosition++)
             {
-                if (text[i] == ')' && !text.IsEscapedCharacter(i))
+                if (text[readPosition] == ')' && !text.IsEscapedCharacter(readPosition))
                 {
-                    var attributeText = text.Substring(startSuffix + 2, i - startSuffix - 2).RemoveEscapeСharacters();
-                    var attribute = new Attribute(attributeText, AttributeType.Url);
-                    matchObject = new MatchObject(startSuffix, i, new List<Attribute> {attribute});
-                    return true;
+                    return readPosition;
                 }
             }
-            return false;
+            return -1;
         }
     }
 }

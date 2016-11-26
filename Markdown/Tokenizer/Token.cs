@@ -1,18 +1,27 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Markdown.Shell;
 
 namespace Markdown.Tokenizer
 {
     public class Token
     {
-        public string Text { get; set; }
-        public IShell Shell { get; }
-        public List<Attribute> Attributes;
-        public Token(string text, List<Attribute> attributes, IShell shell = null)
+        public readonly string Text;
+        public readonly List<Attribute> Attributes;
+        public readonly Func<string, IEnumerable<Attribute>, string> ConvertToHtml;
+        public readonly IShell Shell;
+
+        public Token(string text, List<Attribute> attributes, Func<string, IEnumerable<Attribute>, string> convertToHtml, IShell shell=null)
         {  
             Text = text;
-            Shell = shell;
             Attributes = attributes;
+            ConvertToHtml = convertToHtml;
+            Shell = shell;
+        }
+
+        public void AddAttribute(Attribute attribute)
+        {
+            Attributes.Add(attribute);
         }
 
         public bool HasShell()

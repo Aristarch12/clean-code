@@ -105,14 +105,6 @@ namespace Markdown.Tests
         }
 
         [Test]
-        public void notFindShell_WhenPrefixSurroundedByNumbers()
-        {
-            var text = "12_2text_";
-            var tokenizer = new StringTokenizer(text, shells);
-            tokenizer.NextToken().Text.Should().Be("12_2text");
-        }
-
-        [Test]
         public void throwException_WhenIsImpossibleGetToken()
         {
             var text = "token";

@@ -32,7 +32,8 @@ namespace Markdown.Tests
                 '[',
                 ']',
                 '(',
-                ')'
+                ')',
+                '#'
                 
             };
             var builder = new StringBuilder();
@@ -110,6 +111,13 @@ namespace Markdown.Tests
         }
 
         [Test]
+        public void notFindShell_WhenPrefixSurroundedByNumbers()
+        {
+            var text = "12_2text_";
+            md.Render(text).Should().Be("12_2text_");
+        }
+
+        [Test]
         public void shouldWorkInLinearTime_WhenBigData()
         {
             var measurementResult = new List<Tuple<int, long>>();
@@ -131,13 +139,13 @@ namespace Markdown.Tests
                 var secondSize = measurementResult[i + 1].Item1;
                 var quotientSizes = (double) firstSize/secondSize;
                 var quotientTimes = (double) firstTime/secondTime;
-                quotientTimes.Should().BeGreaterThan(quotientSizes / 2);
+                quotientTimes.Should().BeGreaterThan(quotientSizes / 3);
             }
         }
 
-        [TestCase("__bold__", "qwerty", ExpectedResult = "<strong style=qwerty>bold</strong>")]
-        [TestCase("_italic_", "css", ExpectedResult = "<em style=css>italic</em>")]
-        [TestCase("[text](link)", "aaa", ExpectedResult = "<a href=link style=aaa>text</a>")]
+        [TestCase("__bold__", "qwerty", ExpectedResult = "<strong class=qwerty>bold</strong>")]
+        [TestCase("_italic_", "css", ExpectedResult = "<em class=css>italic</em>")]
+        [TestCase("[text](link)", "aaa", ExpectedResult = "<a href=link class=aaa>text</a>")]
         public string addStyleAttribute_WhenSetCss(string content, string attributeValue)
         {
             md.CssAtribute = attributeValue;

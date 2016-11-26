@@ -1,18 +1,28 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Markdown.Shell
 {
     public class MatchObject
     {
-        public readonly int Start;
-        public readonly int End;
-        public readonly List<Attribute> Attributes;
-        public int Length => End - Start + 1;
-        public MatchObject(int start, int end, List<Attribute> attributes)
+        public readonly int StartPrefix;
+        public readonly int PrefixLength;
+        public readonly int StartSuffix;
+        public readonly int SuffixLength;
+        public readonly IShell Shell;
+        public readonly Func<string, IEnumerable<Attribute>, string> ConvertToHtml;
+        public readonly Attribute Attribute;
+        public MatchObject(int startPrefix, int prefixLength, int startSuffix, int suffixLength, Func<string, IEnumerable<Attribute>, string> convertToHtml, IShell shell, Attribute attribute=null)
         {
-            Start = start;
-            End = end;
-            Attributes = attributes;
+            StartPrefix = startPrefix;
+            PrefixLength = prefixLength;
+            StartSuffix = startSuffix;
+            SuffixLength = suffixLength;
+            ConvertToHtml = convertToHtml;
+            Shell = shell;
+            Attribute = attribute;
         }
+
+
     }
 }

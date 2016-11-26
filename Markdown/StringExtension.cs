@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Markdown.Shell;
+﻿using System.Linq;
 
 namespace Markdown
 {
@@ -41,15 +38,9 @@ namespace Markdown
             return startPosition + substring.Length - 1;
         }
 
-        public static bool TryMatchSubstring(this string text, string substring, int startPosition, out MatchObject matchObject)
+        public static bool TryMatchSubstring(this string text, string substring, int startPosition)
         {
-            matchObject = null;
-            if (substring.IsSubstring(text, startPosition))
-            {
-                matchObject = new MatchObject(startPosition, startPosition + substring.Length - 1, new List<Attribute>());
-                return true;
-            }
-            return false;
+            return substring.IsSubstring(text, startPosition);
         }
 
         public static bool HasSpace(this string text, int position)
@@ -59,6 +50,11 @@ namespace Markdown
                 return false;
             }
             return text[position] == ' ';
+        }
+
+        public static bool HasEndLine(this string text, int position)
+        {
+            return "\n".IsSubstring(text, position) || "\r\n".IsSubstring(text, position);
         }
     }
     
