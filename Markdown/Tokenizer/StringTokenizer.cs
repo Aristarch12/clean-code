@@ -42,12 +42,12 @@ namespace Markdown.Tokenizer
             {
                 return token;
             }
-            var rawText = ReadRawText(shells.Select(s => s.GetStopSymbol()).ToArray());
+            var stopSymbols = shells.Select(s => s.GetStopSymbols()).SelectMany(c => c).ToArray();
+            var rawText = ReadRawText(stopSymbols);
             return new Token(rawText, new List<Attribute>(), ConvertRawTextToHtml);
-
         }
 
-        private Func<string, IEnumerable<Attribute>, string> ConvertRawTextToHtml => (rawText, attributes) => rawText;
+        private static Func<string, IEnumerable<Attribute>, string> ConvertRawTextToHtml => (rawText, attributes) => rawText;
 
         public Token ReadFormattingToken()
         {
@@ -55,8 +55,7 @@ namespace Markdown.Tokenizer
             MatchObject resultMatchObject = null;
             foreach (var shell in shells)
             {
-                MatchObject matchObject;
-                shell.TryMatch(text, currentPosition, out matchObject);
+                var matchObject = shell.MatchText(text, currentPosition);
                 if (maxPrefix < matchObject?.PrefixLength)
                 {
                     maxPrefix = matchObject.PrefixLength;
@@ -67,8 +66,7 @@ namespace Markdown.Tokenizer
             {
                 return null;
             }
-            var content = text.Substring(resultMatchObject.StartPrefix + resultMatchObject.PrefixLength,
-                resultMatchObject.StartSuffix - (resultMatchObject.StartPrefix + resultMatchObject.PrefixLength));
+            var content = GetContent(text, resultMatchObject);
             var attributes = new List<Attribute>();
             if (resultMatchObject.Attribute != null)
             {
@@ -77,6 +75,13 @@ namespace Markdown.Tokenizer
             var resultToken = new Token(content, attributes, resultMatchObject.ConvertToHtml, resultMatchObject.Shell);
             currentPosition = resultMatchObject.StartSuffix + resultMatchObject.SuffixLength;
             return resultToken;
+        }
+
+        private static string GetContent(string originalText, MatchObject matchObject)
+        {
+            var startText = matchObject.StartPrefix + matchObject.PrefixLength;
+            var textLength = matchObject.StartSuffix - (matchObject.StartPrefix + matchObject.PrefixLength);
+            return originalText.Substring(startText, textLength);
         }
 
         private string ReadRawText(char[] stopSypbols)

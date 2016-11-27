@@ -17,7 +17,8 @@ namespace Markdown
             new DoubleUnderline(),
             new UrlShell(),
             new Paragraph(),
-            new Header()
+            new Header(),
+            new CodeBlock()
         };
 
 

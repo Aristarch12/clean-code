@@ -45,16 +45,26 @@ namespace Markdown
 
         public static bool HasSpace(this string text, int position)
         {
-            if (position < 0 || position >= text.Length)
-            {
-                return false;
-            }
-            return text[position] == ' ';
+            return text.HasSymbol(position, ' ');
         }
 
         public static bool HasEndLine(this string text, int position)
         {
             return "\n".IsSubstring(text, position) || "\r\n".IsSubstring(text, position);
+        }
+
+        public static bool IsLineStart(this string text, int position)
+        {
+            return position == 0 || text.HasSymbol(position - 1, '\n');
+        }
+
+        public static bool HasSymbol(this string text, int position, char symbol)
+        {
+            if (position < 0 || position >= text.Length)
+            {
+                return false;
+            }
+            return text[position] == symbol;
         }
     }
     

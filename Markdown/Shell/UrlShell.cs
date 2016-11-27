@@ -13,9 +13,8 @@ namespace Markdown.Shell
             return false;
         }
 
-        public bool TryMatch(string text, int startPosition, out MatchObject matchObject)
+        public MatchObject MatchText(string text, int startPosition)
         {
-            matchObject = null;
             if (TryOpen(text, startPosition))
             {
                 for (var readPosition = startPosition + Prefix.Length - 1; readPosition < text.Length; readPosition++)
@@ -25,7 +24,7 @@ namespace Markdown.Shell
                     {
                         var suffixLength = endSuffixPosition - readPosition + 1;
                         var attribute = new Attribute(text.Substring(readPosition + 2, suffixLength - 3), AttributeType.Url);
-                        matchObject = new MatchObject(
+                        return new MatchObject(
                             startPosition,
                             Prefix.Length,
                             readPosition,
@@ -33,16 +32,15 @@ namespace Markdown.Shell
                             GetConversionFunctionToHtml(),
                             this,
                             attribute);
-                        return true;
                     }
                 }
             }
-            return false;
+            return null;
         }
 
-        public char GetStopSymbol()
+        public char[] GetStopSymbols()
         {
-            return Prefix[0];
+            return new [] { Prefix[0]};
         }
 
         private Func<string, IEnumerable<Attribute>, string> GetConversionFunctionToHtml()

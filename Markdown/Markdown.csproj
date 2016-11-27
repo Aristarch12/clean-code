@@ -37,6 +37,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attribute.cs" />
+    <Compile Include="Shell\CodeBlock.cs" />
     <Compile Include="Shell\Header.cs" />
     <Compile Include="Shell\DoubleUnderline.cs" />
     <Compile Include="Md.cs" />

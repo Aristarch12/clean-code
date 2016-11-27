@@ -54,26 +54,24 @@ namespace Markdown.Shell
             return text.TryMatchSubstring(Suffix, startSuffix);
         }
 
-        public bool TryMatch(string text, int startPosition, out MatchObject matchObject)
+        public MatchObject MatchText(string text, int startPosition)
         {
-            matchObject = null;
             if (TryOpen(text, startPosition))
             {
                 for (var readPosition = startPosition + Prefix.Length; readPosition < text.Length; readPosition++)
                 {
                     if (TryClose(text, readPosition))
                     {
-                        matchObject = new MatchObject(startPosition, Prefix.Length, readPosition, Suffix.Length, GetConversionFunctionToHtml(), this);
-                        return true;
+                        return new MatchObject(startPosition, Prefix.Length, readPosition, Suffix.Length, GetConversionFunctionToHtml(), this);
                     }
                 }
             }
-            return false;
+            return null;
         }
 
-        public char GetStopSymbol()
+        public char[] GetStopSymbols()
         {
-            return Prefix[0];
+            return new[] {Prefix[0]};
         }
 
         private Func<string, IEnumerable<Attribute>, string> GetConversionFunctionToHtml()

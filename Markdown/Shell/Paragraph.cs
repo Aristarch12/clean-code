@@ -12,12 +12,11 @@ namespace Markdown.Shell
             return false;
         }
 
-        public bool TryMatch(string text, int startPosition, out MatchObject matchObject)
+        public MatchObject MatchText(string text, int startPosition)
         {
-            matchObject = null;
             if (!"  ".IsSubstring(text, startPosition))
             {
-                return false;
+                return null;
             }
             var readPosition = startPosition;
             while (text.HasSpace(readPosition) || text[readPosition] == '\r')
@@ -27,11 +26,10 @@ namespace Markdown.Shell
 
             if (readPosition < text.Length && text[readPosition] == '\n')
             {
-                matchObject =  new MatchObject(startPosition,
+                return  new MatchObject(startPosition,
                     readPosition - startPosition,readPosition, 1, GetConversionFunctionToHtml(), this);
-                return true;
             }
-            return false;
+            return null;
         }
 
         private Func<string, IEnumerable<Attribute>, string> GetConversionFunctionToHtml()
@@ -39,9 +37,9 @@ namespace Markdown.Shell
             return (text, attributes) => $"<{Tag}/>";
         }
 
-        public char GetStopSymbol()
+        public char[] GetStopSymbols()
         {
-            return ' ';
+            return new char[] {' '};
         }
     }
 }

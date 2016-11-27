@@ -3,7 +3,7 @@
     public interface IShell
     {
         bool Contains(IShell shell);
-        bool TryMatch(string text, int startPosition, out MatchObject matchObject);
-        char GetStopSymbol();
+        MatchObject MatchText(string text, int startPosition);
+        char[] GetStopSymbols();
     }
 }

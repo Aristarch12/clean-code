@@ -13,9 +13,8 @@ namespace Markdown.Shell
             return false;
         }
 
-        public bool TryMatch(string text, int startPosition, out MatchObject matchObject)
+        public MatchObject MatchText(string text, int startPosition)
         {
-            matchObject = null;
             var countPrefixHashSign = 0;
             var readPosition = startPosition;
             while (readPosition < text.Length && text[readPosition] == '#')
@@ -26,21 +25,20 @@ namespace Markdown.Shell
 
             if (countPrefixHashSign == 0 || countPrefixHashSign > 6)
             {
-                return false;
+                return null;
             }
             for (readPosition++; readPosition < text.Length; readPosition++)
             {
                 if (text.HasEndLine(readPosition))
                 {
                     var suffixLength = text[readPosition] == '\n' ? 1 : 2;
-                    matchObject = new MatchObject(
+                    return new MatchObject(
                         startPosition, 
                         countPrefixHashSign,
                         readPosition,
                         suffixLength,
                         GetConversionFunctionToHtml(countPrefixHashSign),
                         this);
-                    return true;
                 }
                 if (text[readPosition] == '#')
                 {
@@ -51,17 +49,16 @@ namespace Markdown.Shell
                         countSuffixHashSign++;
                         readPosition++;
                     }
-                    matchObject =  new MatchObject(
+                    return new MatchObject(
                         startPosition, 
                         countPrefixHashSign, 
                         startSuffix, 
                         countSuffixHashSign,
                         GetConversionFunctionToHtml(countPrefixHashSign),
                         this);
-                    return true;
                 }
             }
-            return false;
+            return null;
         }
 
         private Func<string, IEnumerable<Attribute>, string> GetConversionFunctionToHtml(int countHashSign)
@@ -73,11 +70,9 @@ namespace Markdown.Shell
             };
         }
 
-
-
-        public char GetStopSymbol()
+        public char[] GetStopSymbols()
         {
-            return '#';
+            return new [] {'#'} ;
         }
     }
 }
