@@ -152,6 +152,32 @@ namespace Markdown.Tests
             return md.Render(content);
         }
 
+
+        [TestCase("text   \ntext", ExpectedResult = "text<br/>text")]
+        [TestCase("text   \r\ntext", ExpectedResult = "text<br/>text")]
+        public string RenderTextWithParagraph(string text)
+        {
+            return md.Render(text);
+        }
+
+
+        [TestCase("#text\ntext", ExpectedResult = "<h1>text</h1>text")]
+        [TestCase("##text###", ExpectedResult = "<h2>text</h2>")]
+        [TestCase("####text\nqwe", ExpectedResult = "<h4>text</h4>qwe")]
+        [TestCase("######text#", ExpectedResult = "<h6>text</h6>")]
+        public string RenderTextWithHeader(string text)
+        {
+            return md.Render(text);
+        }
+
+        [TestCase("    code\ntext", ExpectedResult = "<pre><code>code</code></pre>text")]
+        [TestCase("\tcode\ntext", ExpectedResult = "<pre><code>code</code></pre>text")]
+        [TestCase("\tcode1\n    code2\r\n\tcode3", ExpectedResult = "<pre><code>code1\ncode2\ncode3</code></pre>")]
+        public string RenderTextWithCodeBlock(string text)
+        {
+            return md.Render(text);
+        }
+
         [Test]
         public void RenderTextWithUrlFormatting()
         {
