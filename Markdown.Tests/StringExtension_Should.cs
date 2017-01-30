@@ -32,6 +32,7 @@ namespace Markdown.Tests
         [TestCase("abc1__2", 4, 5, ExpectedResult = true)]
         [TestCase("abc2_r", 4, 4, ExpectedResult = false)]
         [TestCase("9_-1", 1, 1, ExpectedResult = false)]
+        [TestCase("3abc", 1, 3, ExpectedResult = false)]
         public bool CheckSubstringSurroundedByNumbers(string text, int start, int end)
         {
             return text.IsSurroundedByNumbers(start, end);

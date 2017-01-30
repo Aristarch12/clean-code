@@ -1,4 +1,4 @@
-﻿using System.Linq;
+﻿using System;
 
 namespace Markdown
 {
@@ -10,12 +10,12 @@ namespace Markdown
             {
                 return false;
             }
-            return !substring.Where((t, i) => text[start + i] != t).Any();
+            return text.IndexOf(substring, start, substring.Length, StringComparison.Ordinal) != -1;
         }
 
         public static bool IsIncorrectEndingShell(this string text, int currentPosition)
         {
-            return currentPosition >= text.Length || text[currentPosition] == ' ';
+            return currentPosition >= text.Length || text.HasSpace(currentPosition);
         }
 
         public static bool IsEscapedCharacter(this string text, int currentPosition)
@@ -24,9 +24,8 @@ namespace Markdown
         }
         public static bool IsSurroundedByNumbers(this string text, int startPrefix, int endSuffix)
         {
-            int temp;
-            return startPrefix > 0 && int.TryParse(text[startPrefix - 1].ToString(), out temp) &&
-                   endSuffix + 1 < text.Length && int.TryParse(text[endSuffix + 1].ToString(), out temp);
+            return startPrefix > 0 && char.IsDigit(text[startPrefix - 1]) &&
+                   endSuffix + 1 < text.Length && char.IsDigit(text[endSuffix + 1]);
         }
         public static string RemoveEscapeСharacters(this string text)
         {
@@ -45,7 +44,7 @@ namespace Markdown
 
         public static bool HasSpace(this string text, int position)
         {
-            return text.HasSymbol(position, ' ');
+            return text.HasSymbol(position, ' ') || text.HasSymbol(position, '\t');
         }
 
         public static bool HasEndLine(this string text, int position)
